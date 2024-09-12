@@ -21,3 +21,7 @@ This project is a Spring Boot application that provides services to determine th
 1. **Clone the repository:**
    ```sh
    git clone https://github.com/mhtrahman/top-customer.git
+
+Put the following in browser to see the top customer:
+
+http://localhost:8080/api/v1/customers/topCustomer

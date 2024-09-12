@@ -1,6 +1,7 @@
 package com.version1.topcustomer.services;
 
 
+import exceptions.ApiException;
 import com.version1.topcustomer.models.Customer;
 import com.version1.topcustomer.models.Invoice;
 import lombok.AllArgsConstructor;
@@ -8,12 +9,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -39,7 +36,6 @@ public class CustomerService {
 
         var topCustomers = findTopSpendingCustomers(customers, customerSpending);
 
-
             StringBuilder result = new StringBuilder("The customer(s) who spent the most ");
             result.append(topCustomers.size()>1?"are ":"is ");
             for (Customer customer : topCustomers) {
@@ -59,7 +55,6 @@ public class CustomerService {
                     .append(customerSpending.get(topCustomers.getFirst().getId()))
                     .append(" spent.");
             return result.toString();
-
     }
 
     private List<Customer> getCustomers() {
@@ -102,7 +97,7 @@ public class CustomerService {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             return response.body();
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new ApiException("Failed to send GET request to " + urlStr);
         }
     }
 
@@ -114,8 +109,7 @@ public class CustomerService {
         }
 
         for (Invoice invoice : invoices) {
-            double currentSpending = customerSpending.get(invoice.getCustomerId());
-            customerSpending.put(invoice.getCustomerId(), currentSpending + invoice.getAmount());
+            customerSpending.compute(invoice.getCustomerId(), (k, currentSpending) -> currentSpending + invoice.getAmount());
         }
 
         return customerSpending;
